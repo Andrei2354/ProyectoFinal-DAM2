@@ -1,33 +1,41 @@
 package screens
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import cafe.adriel.voyager.navigator.Navigator
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import java.awt.Toolkit
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.rememberWindowState
+
+
 
 @Composable
 @Preview
 fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
-
     MaterialTheme {
-        Button(onClick = {
-            text = "Hello, Desktop!"
-        }) {
-            Text(text)
-        }
+        Navigator(LoginScreen())
     }
 }
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
+    val screenSize = Toolkit.getDefaultToolkit().screenSize
+    val screenWidthDp = (screenSize.width / Toolkit.getDefaultToolkit().screenResolution.toFloat() * 96).dp
+    val screenHeightDp = (screenSize.height / Toolkit.getDefaultToolkit().screenResolution.toFloat() * 96).dp
+
+    val windowState = rememberWindowState(
+        size = DpSize(screenWidthDp, screenHeightDp)
+    )
+
+    Window(
+        onCloseRequest = ::exitApplication,
+        title = "Mi App",
+        state = windowState,
+        resizable = true
+    ) {
         App()
     }
 }
