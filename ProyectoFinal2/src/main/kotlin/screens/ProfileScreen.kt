@@ -76,6 +76,13 @@ class ProfileScreen : Screen {
                         tint = negro
                     )
                 }
+            }
+
+            // Avatar y nombre
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(vertical = 20.dp)
+            ) {
                 Text(
                     "Mi Perfil",
                     style = TextStyle(
@@ -85,25 +92,18 @@ class ProfileScreen : Screen {
                     )
                 )
                 Spacer(modifier = Modifier.size(40.dp)) // Espacio para equilibrar
-            }
-
-            // Avatar y nombre
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(vertical = 20.dp)
-            ) {
                 Box(
                     modifier = Modifier
                         .size(120.dp)
                         .clip(CircleShape)
-                        .background(lila.copy(alpha = 0.3f))
-                        .border(2.dp, lila, CircleShape),
+                        .background(pastel.copy(alpha = 0.3f))
+                        .border(2.dp, pastel, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Avatar",
-                        tint = lila,
+                        tint = negro,
                         modifier = Modifier.size(60.dp)
                     )
                 }
@@ -128,7 +128,7 @@ class ProfileScreen : Screen {
             // Sección de información
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .width(500.dp)
                     .padding(vertical = 8.dp),
                 elevation = 4.dp,
                 shape = RoundedCornerShape(12.dp),
@@ -146,14 +146,14 @@ class ProfileScreen : Screen {
             // Botones de acciones
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .width(500.dp)
                     .padding(vertical = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
                     onClick = { /* Editar perfil */ },
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .width(500.dp)
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
