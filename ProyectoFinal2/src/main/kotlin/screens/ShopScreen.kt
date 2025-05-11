@@ -44,7 +44,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Badge
 import androidx.compose.material.IconButton
 import androidx.compose.ui.graphics.vector.ImageVector
-
+import androidx.compose.ui.text.font.FontFamily
 
 
 class ShopScreen: Screen {
@@ -81,16 +81,17 @@ class ShopScreen: Screen {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Mi Tienda Online",
+                    "Tekio",
                     style = TextStyle(
-                        fontSize = 24.sp,
+                        fontSize = 42.sp,
                         fontWeight = FontWeight.Bold,
-                        color = negro
+                        color = negro,
+                        fontFamily = FontFamily.Serif // Cambia aquí la fuente
                     )
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp) // Espacio entre iconos
+                    horizontalArrangement = Arrangement.spacedBy(20.dp) // Espacio entre iconos
                 ) {
                     // Icono de perfil
                     IconButton(
@@ -116,6 +117,12 @@ class ShopScreen: Screen {
                         IconButton(
                             onClick = { navigator?.push(CarritoScreen()) },
                             modifier = Modifier.size(40.dp)
+                                .size(40.dp)
+                                .border(
+                                    width = 1.dp,
+                                    color = pastel,
+                                    shape = CircleShape
+                                )
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ShoppingCart,
@@ -123,13 +130,6 @@ class ShopScreen: Screen {
                                 tint = negro,
                                 modifier = Modifier.size(24.dp)
                             )
-                        }
-                        Badge(
-                            modifier = Modifier.offset(x = (-8).dp, y = (-8).dp),
-                            backgroundColor = pastel,
-                            contentColor = blanco
-                        ) {
-                            Text("3", fontSize = 12.sp)
                         }
                     }
                 }
