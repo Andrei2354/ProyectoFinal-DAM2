@@ -10,6 +10,7 @@ import java.awt.Toolkit
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.ui.res.painterResource
 
 
 
@@ -34,7 +35,8 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "Mi App",
         state = windowState,
-        resizable = true
+        resizable = true,
+        icon = painterResource("drawable/icono1.png")
     ) {
         App()
     }
