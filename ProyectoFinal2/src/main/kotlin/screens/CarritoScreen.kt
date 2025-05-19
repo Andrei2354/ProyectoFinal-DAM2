@@ -138,7 +138,7 @@ class CarritoScreen : Screen {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp)
+                    .padding(vertical = 20.dp)
                     .padding(horizontal = 200.dp),
                 elevation = 8.dp,
                 shape = RoundedCornerShape(12.dp),
