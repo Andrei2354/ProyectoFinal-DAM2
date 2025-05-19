@@ -37,6 +37,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.window.Dialog
 
 class CarritoScreen : Screen {
@@ -52,9 +53,15 @@ class CarritoScreen : Screen {
         var carrito by remember {
             mutableStateOf(
                 listOf(
-                    ProductoCarrito("Zapatos deportivos", "$59.99", 1),
-                    ProductoCarrito("Camiseta básica", "$19.99", 2),
-                    ProductoCarrito("Gorra", "$14.99", 1)
+                    ProductoCarrito("Móvil", "$59.99", 1),
+                    ProductoCarrito("Lavadora básica", "$19.99", 2),
+                    ProductoCarrito("3070Ti", "$14.99", 1),
+                    ProductoCarrito("Móvil", "$59.99", 1),
+                    ProductoCarrito("Lavadora básica", "$19.99", 2),
+                    ProductoCarrito("3070Ti", "$14.99", 1),
+                    ProductoCarrito("Móvil", "$59.99", 1),
+                    ProductoCarrito("Lavadora básica", "$19.99", 2),
+                    ProductoCarrito("3070Ti", "$14.99", 1)
                 )
             )
         }
@@ -96,8 +103,8 @@ class CarritoScreen : Screen {
                 )
                 Badge(
                     modifier = Modifier.size(40.dp),
-                    backgroundColor = lila,
-                    contentColor = blanco
+                    backgroundColor = blanco,
+                    contentColor = lila
                 ) {
                     Text(carrito.sumOf { it.cantidad }.toString())
                 }
@@ -131,7 +138,8 @@ class CarritoScreen : Screen {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp),
+                    .padding(bottom = 20.dp)
+                    .padding(horizontal = 200.dp),
                 elevation = 8.dp,
                 shape = RoundedCornerShape(12.dp),
                 backgroundColor = blanco
@@ -222,7 +230,7 @@ class CarritoScreen : Screen {
         val blanco = Color(0xFFefeff2)
 
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 200.dp),
             elevation = 2.dp,
             shape = RoundedCornerShape(12.dp),
             backgroundColor = blanco
