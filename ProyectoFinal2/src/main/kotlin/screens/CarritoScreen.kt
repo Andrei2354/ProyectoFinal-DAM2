@@ -18,7 +18,6 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,9 +31,14 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import cafe.adriel.voyager.navigator.currentOrThrow
+import androidx.compose.foundation.*
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.window.Dialog
 
 class CarritoScreen : Screen {
     @Composable
@@ -46,12 +50,24 @@ class CarritoScreen : Screen {
         val blanco = Color(0xFFefeff2)
         val pupura = Color(0xFFa69eb0)
 
-        // Estado del carrito (simulado)
-        val carrito = listOf(
-            ProductoCarrito("Zapatos deportivos", "$59.99", 1),/* R.drawable.zapatos),*/
-            ProductoCarrito("Camiseta básica", "$19.99", 2),/* R.drawable.camiseta),*/
-            ProductoCarrito("Gorra", "$14.99", 1)/*, R.drawable.gorra)*/
-        )
+        var carrito by remember {
+            mutableStateOf(
+                listOf(
+                    ProductoCarrito("Móvil", "$59.99", 1),
+                    ProductoCarrito("Lavadora básica", "$19.99", 2),
+                    ProductoCarrito("3070Ti", "$14.99", 1),
+                    ProductoCarrito("Móvil", "$59.99", 1),
+                    ProductoCarrito("Lavadora básica", "$19.99", 2),
+                    ProductoCarrito("3070Ti", "$14.99", 1),
+                    ProductoCarrito("Móvil", "$59.99", 1),
+                    ProductoCarrito("Lavadora básica", "$19.99", 2),
+                    ProductoCarrito("3070Ti", "$14.99", 1)
+                )
+            )
+        }
+
+        var showPaymentDialog by remember { mutableStateOf(false) }
+
         val subtotal = carrito.sumOf { it.precio.removePrefix("$").toDouble() * it.cantidad }
 
         Column(
@@ -60,7 +76,6 @@ class CarritoScreen : Screen {
                 .background(pupura)
                 .padding(horizontal = 16.dp)
         ) {
-            // Encabezado
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -88,15 +103,13 @@ class CarritoScreen : Screen {
                 )
                 Badge(
                     modifier = Modifier.size(40.dp),
-                    backgroundColor = lila,
-                    contentColor = blanco
+                    backgroundColor = blanco,
+                    contentColor = lila
                 ) {
-                    Text(carrito.size.toString())
+                    Text(carrito.sumOf { it.cantidad }.toString())
                 }
             }
 
-            // Lista de productos
-            /*
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -104,18 +117,29 @@ class CarritoScreen : Screen {
                 items(carrito) { producto ->
                     ItemCarrito(
                         producto = producto,
-                        onIncrease = {  },
-                        onDecrease = {  },
-                        onRemove = { }
+                        onIncrease = {
+                            carrito = carrito.map {
+                                if (it == producto) it.copy(cantidad = it.cantidad + 1) else it
+                            }
+                        },
+                        onDecrease = {
+                            if (producto.cantidad > 1) {
+                                carrito = carrito.map {
+                                    if (it == producto) it.copy(cantidad = it.cantidad - 1) else it
+                                }
+                            }
+                        },
+                        onRemove = {
+                            carrito = carrito.filter { it != producto }
+                        }
                     )
                 }
-            }*/
-
-            // Resumen de compra
+            }
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp),
+                    .padding(vertical = 20.dp)
+                    .padding(horizontal = 200.dp),
                 elevation = 8.dp,
                 shape = RoundedCornerShape(12.dp),
                 backgroundColor = blanco
@@ -159,7 +183,7 @@ class CarritoScreen : Screen {
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = {},
+                        onClick = { showPaymentDialog = true },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
@@ -167,12 +191,30 @@ class CarritoScreen : Screen {
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = lila,
                             contentColor = blanco
-                        )
+                        ),
+                        enabled = carrito.isNotEmpty()
                     ) {
                         Text("Proceder al pago", fontSize = 16.sp)
                     }
                 }
             }
+        }
+
+        if (showPaymentDialog) {
+            PaymentDialog(
+                total = subtotal,
+                onDismiss = { showPaymentDialog = false },
+                onPaymentSuccess = {
+                    showPaymentDialog = false
+                    carrito = emptyList()
+                },
+                colors = CarritoColors(
+                    lila = lila,
+                    negro = negro,
+                    blanco = blanco,
+                    pastel = pastel
+                )
+            )
         }
     }
 
@@ -185,11 +227,13 @@ class CarritoScreen : Screen {
     ) {
         val lila = Color(0xFFa69eb0)
         val negro = Color(0xFF011f4b)
+        val blanco = Color(0xFFefeff2)
 
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 200.dp),
             elevation = 2.dp,
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            backgroundColor = blanco
         ) {
             Row(
                 modifier = Modifier
@@ -197,15 +241,21 @@ class CarritoScreen : Screen {
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                /*
-                Image(
-                    painter = painterResource(id = producto.imagen),
-                    contentDescription = producto.nombre,
+                Box(
                     modifier = Modifier
                         .size(80.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
-                )*/
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(lila.copy(alpha = 0.1f))
+                        .border(1.dp, lila.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ShoppingBag,
+                        contentDescription = "Producto",
+                        tint = lila,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
 
                 Column(
                     modifier = Modifier
@@ -232,7 +282,6 @@ class CarritoScreen : Screen {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Row(
                         modifier = Modifier
                             .border(1.dp, lila, RoundedCornerShape(20.dp))
@@ -267,8 +316,6 @@ class CarritoScreen : Screen {
                             )
                         }
                     }
-
-                    // Botón eliminar
                     Text(
                         "Eliminar",
                         style = TextStyle(
@@ -288,7 +335,332 @@ class CarritoScreen : Screen {
     data class ProductoCarrito(
         val nombre: String,
         val precio: String,
-        var cantidad: Int,
-        /*@DrawableRes val imagen: Int*/
+        val cantidad: Int
     )
+
+    data class CarritoColors(
+        val lila: Color,
+        val negro: Color,
+        val blanco: Color,
+        val pastel: Color
+    )
+}
+
+@Composable
+fun PaymentDialog(
+    total: Double,
+    onDismiss: () -> Unit,
+    onPaymentSuccess: () -> Unit,
+    colors: CarritoScreen.CarritoColors
+) {
+    var nombreTarjeta by remember { mutableStateOf("") }
+    var numeroTarjeta by remember { mutableStateOf("") }
+    var fechaVencimiento by remember { mutableStateOf("") }
+    var cvv by remember { mutableStateOf("") }
+    var nombreFacturacion by remember { mutableStateOf("") }
+    var direccionFacturacion by remember { mutableStateOf("") }
+
+    var metodoPagoSeleccionado by remember { mutableStateOf("Tarjeta de Crédito") }
+    val metodosPago = listOf("Tarjeta de Crédito", "PayPal", "Transferencia Bancaria")
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            backgroundColor = colors.blanco,
+            elevation = 8.dp
+        ) {
+            LazyColumn(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Text(
+                        text = "Completar Pago",
+                        style = TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colors.negro
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    Card(
+                        backgroundColor = colors.pastel.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(8.dp),
+                        elevation = 0.dp
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Total a pagar:",
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                            Text(
+                                "$${"%.2f".format(total)}",
+                                style = TextStyle(
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colors.lila
+                                )
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    Text(
+                        "Método de pago",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = colors.negro
+                        )
+                    )
+
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        metodosPago.forEach { metodo ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { metodoPagoSeleccionado = metodo }
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = metodoPagoSeleccionado == metodo,
+                                    onClick = { metodoPagoSeleccionado = metodo },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = colors.lila,
+                                        unselectedColor = colors.negro.copy(alpha = 0.6f)
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(metodo, color = colors.negro)
+                            }
+                        }
+                    }
+                }
+
+                if (metodoPagoSeleccionado == "Tarjeta de Crédito") {
+                    item {
+                        Text(
+                            "Información de la tarjeta",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = colors.negro
+                            )
+                        )
+                    }
+
+                    item {
+                        OutlinedTextField(
+                            value = nombreTarjeta,
+                            onValueChange = { nombreTarjeta = it },
+                            label = { Text("Nombre en la tarjeta", color = colors.negro.copy(alpha = 0.7f)) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Person,
+                                    contentDescription = "Nombre",
+                                    tint = colors.lila
+                                )
+                            },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedBorderColor = colors.lila,
+                                unfocusedBorderColor = colors.negro.copy(alpha = 0.3f),
+                                cursorColor = colors.lila,
+                                textColor = colors.negro
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    item {
+                        OutlinedTextField(
+                            value = numeroTarjeta,
+                            onValueChange = {
+                                val digitsOnly = it.filter { char -> char.isDigit() }
+                                if (digitsOnly.length <= 16) {
+                                    numeroTarjeta = digitsOnly.chunked(4).joinToString(" ")
+                                }
+                            },
+                            label = { Text("Número de tarjeta", color = colors.negro.copy(alpha = 0.7f)) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.CreditCard,
+                                    contentDescription = "Tarjeta",
+                                    tint = colors.lila
+                                )
+                            },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedBorderColor = colors.lila,
+                                unfocusedBorderColor = colors.negro.copy(alpha = 0.3f),
+                                cursorColor = colors.lila,
+                                textColor = colors.negro
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("1234 5678 9012 3456") }
+                        )
+                    }
+
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = fechaVencimiento,
+                                onValueChange = {
+                                    val digitsOnly = it.filter { char -> char.isDigit() }
+                                    if (digitsOnly.length <= 4) {
+                                        fechaVencimiento = when (digitsOnly.length) {
+                                            in 0..2 -> digitsOnly
+                                            else -> "${digitsOnly.take(2)}/${digitsOnly.drop(2)}"
+                                        }
+                                    }
+                                },
+                                label = { Text("MM/YY", color = colors.negro.copy(alpha = 0.7f)) },
+                                colors = TextFieldDefaults.outlinedTextFieldColors(
+                                    focusedBorderColor = colors.lila,
+                                    unfocusedBorderColor = colors.negro.copy(alpha = 0.3f),
+                                    cursorColor = colors.lila,
+                                    textColor = colors.negro
+                                ),
+                                modifier = Modifier.weight(1f),
+                                placeholder = { Text("12/28") }
+                            )
+
+                            OutlinedTextField(
+                                value = cvv,
+                                onValueChange = {
+                                    if (it.length <= 3 && it.all { char -> char.isDigit() }) {
+                                        cvv = it
+                                    }
+                                },
+                                label = { Text("CVV", color = colors.negro.copy(alpha = 0.7f)) },
+                                colors = TextFieldDefaults.outlinedTextFieldColors(
+                                    focusedBorderColor = colors.lila,
+                                    unfocusedBorderColor = colors.negro.copy(alpha = 0.3f),
+                                    cursorColor = colors.lila,
+                                    textColor = colors.negro
+                                ),
+                                modifier = Modifier.weight(1f),
+                                placeholder = { Text("123") }
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    Text(
+                        "Información de facturación",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = colors.negro
+                        )
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = nombreFacturacion,
+                        onValueChange = { nombreFacturacion = it },
+                        label = { Text("Nombre completo", color = colors.negro.copy(alpha = 0.7f)) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = "Nombre",
+                                tint = colors.lila
+                            )
+                        },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = colors.lila,
+                            unfocusedBorderColor = colors.negro.copy(alpha = 0.3f),
+                            cursorColor = colors.lila,
+                            textColor = colors.negro
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = direccionFacturacion,
+                        onValueChange = { direccionFacturacion = it },
+                        label = { Text("Dirección de facturación", color = colors.negro.copy(alpha = 0.7f)) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.LocationOn,
+                                contentDescription = "Dirección",
+                                tint = colors.lila
+                            )
+                        },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = colors.lila,
+                            unfocusedBorderColor = colors.negro.copy(alpha = 0.3f),
+                            cursorColor = colors.lila,
+                            textColor = colors.negro
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(1f),
+                            border = BorderStroke(1.dp, colors.lila),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = colors.lila
+                            )
+                        ) {
+                            Text("Cancelar")
+                        }
+
+                        Button(
+                            onClick = {
+                                onPaymentSuccess()
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = colors.lila,
+                                contentColor = colors.blanco
+                            ),
+                            enabled = when (metodoPagoSeleccionado) {
+                                "Tarjeta de Crédito" -> nombreTarjeta.isNotBlank() &&
+                                        numeroTarjeta.isNotBlank() &&
+                                        fechaVencimiento.isNotBlank() &&
+                                        cvv.isNotBlank() &&
+                                        nombreFacturacion.isNotBlank() &&
+                                        direccionFacturacion.isNotBlank()
+                                else -> nombreFacturacion.isNotBlank() && direccionFacturacion.isNotBlank()
+                            }
+                        ) {
+                            Text("Pagar $${"%.2f".format(total)}")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

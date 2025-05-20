@@ -32,6 +32,8 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import cafe.adriel.voyager.navigator.currentOrThrow
+import androidx.compose.runtime.*
+import androidx.compose.ui.window.Dialog
 
 class ProfileScreen : Screen {
     @Composable
@@ -43,13 +45,20 @@ class ProfileScreen : Screen {
         val blanco = Color(0xFFefeff2)
         val pupura = Color(0xFFa69eb0)
 
-        // Datos del usuario (simulados)
-        val usuario = Usuario(
-            nombre = "Ana García",
-            email = "ana@tienda.com",
-            telefono = "+34 612 345 678",
-            direccion = "Calle Principal 123, Madrid"
-        )
+        // Estado para manejar los datos del usuario
+        var usuario by remember {
+            mutableStateOf(
+                Usuario(
+                    nombre = "Ana García",
+                    email = "ana@tienda.com",
+                    telefono = "+34 612 345 678",
+                    direccion = "Calle Principal 123, Madrid"
+                )
+            )
+        }
+
+        // Estado para controlar la visibilidad del dialog
+        var showEditDialog by remember { mutableStateOf(false) }
 
         Column(
             modifier = Modifier
@@ -91,7 +100,7 @@ class ProfileScreen : Screen {
                         color = negro
                     )
                 )
-                Spacer(modifier = Modifier.size(40.dp)) // Espacio para equilibrar
+                Spacer(modifier = Modifier.size(40.dp))
                 Box(
                     modifier = Modifier
                         .size(120.dp)
@@ -151,7 +160,7 @@ class ProfileScreen : Screen {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
-                    onClick = { /* Editar perfil */ },
+                    onClick = { showEditDialog = true },
                     modifier = Modifier
                         .width(500.dp)
                         .height(50.dp),
@@ -179,6 +188,24 @@ class ProfileScreen : Screen {
                     Text("Cerrar Sesión", fontSize = 16.sp)
                 }
             }
+        }
+
+        // Dialog de edición
+        if (showEditDialog) {
+            EditProfileDialog(
+                usuario = usuario,
+                onDismiss = { showEditDialog = false },
+                onSave = { usuarioActualizado ->
+                    usuario = usuarioActualizado
+                    showEditDialog = false
+                },
+                colors = ProfileColors(
+                    pastel = pastel,
+                    lila = lila,
+                    negro = negro,
+                    blanco = blanco
+                )
+            )
         }
     }
 
@@ -221,4 +248,177 @@ class ProfileScreen : Screen {
         val telefono: String,
         val direccion: String
     )
+
+    data class ProfileColors(
+        val pastel: Color,
+        val lila: Color,
+        val negro: Color,
+        val blanco: Color
+    )
+}
+
+@Composable
+fun EditProfileDialog(
+    usuario: ProfileScreen.Usuario,
+    onDismiss: () -> Unit,
+    onSave: (ProfileScreen.Usuario) -> Unit,
+    colors: ProfileScreen.ProfileColors
+) {
+    // Estados para los campos de texto
+    var nombre by remember { mutableStateOf(usuario.nombre) }
+    var email by remember { mutableStateOf(usuario.email) }
+    var telefono by remember { mutableStateOf(usuario.telefono) }
+    var direccion by remember { mutableStateOf(usuario.direccion) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            backgroundColor = colors.blanco,
+            elevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Título del dialog
+                Text(
+                    text = "Editar Perfil",
+                    style = TextStyle(
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.negro
+                    ),
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+
+                // Campo de nombre
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text("Nombre", color = colors.negro.copy(alpha = 0.7f)) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = "Nombre",
+                            tint = colors.lila
+                        )
+                    },
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = colors.lila,
+                        unfocusedBorderColor = colors.negro.copy(alpha = 0.3f),
+                        cursorColor = colors.lila,
+                        textColor = colors.negro
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Campo de email
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email", color = colors.negro.copy(alpha = 0.7f)) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Email,
+                            contentDescription = "Email",
+                            tint = colors.lila
+                        )
+                    },
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = colors.lila,
+                        unfocusedBorderColor = colors.negro.copy(alpha = 0.3f),
+                        cursorColor = colors.lila,
+                        textColor = colors.negro
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Campo de teléfono
+                OutlinedTextField(
+                    value = telefono,
+                    onValueChange = { telefono = it },
+                    label = { Text("Teléfono", color = colors.negro.copy(alpha = 0.7f)) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Phone,
+                            contentDescription = "Teléfono",
+                            tint = colors.lila
+                        )
+                    },
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = colors.lila,
+                        unfocusedBorderColor = colors.negro.copy(alpha = 0.3f),
+                        cursorColor = colors.lila,
+                        textColor = colors.negro
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Campo de dirección
+                OutlinedTextField(
+                    value = direccion,
+                    onValueChange = { direccion = it },
+                    label = { Text("Dirección", color = colors.negro.copy(alpha = 0.7f)) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = "Dirección",
+                            tint = colors.lila
+                        )
+                    },
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = colors.lila,
+                        unfocusedBorderColor = colors.negro.copy(alpha = 0.3f),
+                        cursorColor = colors.lila,
+                        textColor = colors.negro
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Botones de acción
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Botón Cancelar
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        border = BorderStroke(1.dp, colors.lila),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = colors.lila
+                        )
+                    ) {
+                        Text("Cancelar")
+                    }
+
+                    // Botón Guardar
+                    Button(
+                        onClick = {
+                            onSave(
+                                ProfileScreen.Usuario(
+                                    nombre = nombre.trim(),
+                                    email = email.trim(),
+                                    telefono = telefono.trim(),
+                                    direccion = direccion.trim()
+                                )
+                            )
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = colors.lila,
+                            contentColor = colors.blanco
+                        )
+                    ) {
+                        Text("Guardar")
+                    }
+                }
+            }
+        }
+    }
 }
