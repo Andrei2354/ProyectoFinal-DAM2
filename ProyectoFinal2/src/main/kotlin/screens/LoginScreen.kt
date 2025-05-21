@@ -25,8 +25,6 @@ class LoginScreen: Screen {
         var isLoading by remember { mutableStateOf(false) }
         var errorMessage by remember { mutableStateOf("") }
         val scope = rememberCoroutineScope()
-
-        // Definición de colores
         val blanco = Color(0xFFefeff2)
         val pupura = Color(0xFFa69eb0)
         val pastel = Color(0xFFf2e2cd)
@@ -82,29 +80,23 @@ class LoginScreen: Screen {
                     )
                 }
 
-                // Row for buttons side by side
                 Row(
                     modifier = Modifier.padding(20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp) // Space between buttons
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Login button
                     Button(
                         onClick = {
                             if (usuario.isNotEmpty() && passwd.isNotEmpty()) {
                                 isLoading = true
                                 errorMessage = ""
 
-                                // Imprimir datos para depuración
                                 println("Intentando login con: $usuario, $passwd")
-
-                                // Llamar a la función de login
                                 apiLogin(usuario, passwd) { user ->
                                     navigator?.push(ShopScreen(user))
                                     usuario = ""
                                     passwd = ""
                                 }
 
-                                // Manejo de errores
                                 scope.launch {
                                     kotlinx.coroutines.delay(3000)
                                     if (isLoading) {
@@ -129,10 +121,8 @@ class LoginScreen: Screen {
                         Text("Iniciar Sesión", color = Color.White)
                     }
 
-                    // Create Account button
                     Button(
                         onClick = {
-                            // Navigate to the registration screen
                             navigator?.push(RegisterScreen())
                         },
                         colors = ButtonDefaults.buttonColors(backgroundColor = pastel)
