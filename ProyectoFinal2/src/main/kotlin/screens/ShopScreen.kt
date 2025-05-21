@@ -45,7 +45,7 @@ import androidx.compose.ui.res.painterResource
 import modelo.Usuario
 
 
-class ShopScreen(val user: Usuario): Screen {
+class ShopScreen(val usuario: Usuario): Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
@@ -82,7 +82,7 @@ class ShopScreen(val user: Usuario): Screen {
                 ) {
                     // Icono de perfil
                     IconButton(
-                        onClick = { navigator?.push(ProfileScreen(user)) },
+                        onClick = { navigator?.push(ProfileScreen(usuario)) },
                         modifier = Modifier
                             .size(40.dp)
                             .border(
