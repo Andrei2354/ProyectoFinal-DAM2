@@ -30,7 +30,6 @@ class RegisterScreen : Screen {
         var errorMessage by remember { mutableStateOf("") }
         val scope = rememberCoroutineScope()
 
-        // Definición de colores
         val blanco = Color(0xFFefeff2)
         val pupura = Color(0xFFa69eb0)
         val pastel = Color(0xFFf2e2cd)
@@ -135,7 +134,6 @@ class RegisterScreen : Screen {
                 ) {
                     Button(
                         onClick = {
-                            // Go back to login screen
                             navigator?.pop()
                         },
                         colors = ButtonDefaults.buttonColors(backgroundColor = gris)
@@ -145,7 +143,6 @@ class RegisterScreen : Screen {
 
                     Button(
                         onClick = {
-                            // Validar los campos
                             when {
                                 nombre.isEmpty() || email.isEmpty() || direccion.isEmpty() ||
                                         password.isEmpty() || confirmPassword.isEmpty() -> {
@@ -160,12 +157,9 @@ class RegisterScreen : Screen {
                                 else -> {
                                     isLoading = true
                                     errorMessage = ""
-
-                                    // Llamar a la API para registrar el usuario
                                     apiRegister(nombre, email, direccion, telefono, password) { success ->
                                         isLoading = false
                                         if (success) {
-                                            // Volver a la pantalla de login
                                             navigator?.pop()
                                         } else {
                                             errorMessage = "Error al registrar. El email podría estar en uso."

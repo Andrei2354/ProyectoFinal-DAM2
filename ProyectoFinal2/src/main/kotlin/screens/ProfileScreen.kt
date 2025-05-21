@@ -30,11 +30,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.filled.*
-import androidx.compose.ui.graphics.vector.ImageVector
 import cafe.adriel.voyager.navigator.currentOrThrow
 import androidx.compose.runtime.*
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.window.Dialog
 import modelo.ProfileColors
 import network.apiEditProfile
 
@@ -43,14 +41,8 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val colors = ProfileColors()
-
-        // Estado para manejar los datos del usuario
         var usuario by remember { mutableStateOf(user) }
-
-        // Estado para controlar la visibilidad del dialog
         var showEditDialog by remember { mutableStateOf(false) }
-
-        // Estado para mostrar mensaje de éxito o error
         var showSnackbar by remember { mutableStateOf(false) }
         var snackbarMessage by remember { mutableStateOf("") }
 
@@ -61,7 +53,6 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Encabezado
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -81,7 +72,6 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
                 }
             }
 
-            // Avatar y nombre
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(vertical = 20.dp)
@@ -112,7 +102,7 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    usuario.nombre, // Usa el usuario del estado
+                    usuario.nombre,
                     style = TextStyle(
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
@@ -121,7 +111,6 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
                 )
             }
 
-            // Sección de información
             Card(
                 modifier = Modifier
                     .width(500.dp)
@@ -140,7 +129,7 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
                             )
                         },
                         title = "Nombre",
-                        value = usuario.nombre // Usa el usuario del estado
+                        value = usuario.nombre
                     )
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
                     InfoRow(
@@ -152,7 +141,7 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
                             )
                         },
                         title = "Email",
-                        value = usuario.email // Usa el usuario del estado
+                        value = usuario.email
                     )
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
                     InfoRow(
@@ -164,7 +153,7 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
                             )
                         },
                         title = "Teléfono",
-                        value = usuario.telefono // Usa el usuario del estado
+                        value = usuario.telefono
                     )
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
                     InfoRow(
@@ -176,12 +165,11 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
                             )
                         },
                         title = "Dirección",
-                        value = usuario.direccion // Usa el usuario del estado
+                        value = usuario.direccion
                     )
                 }
             }
 
-            // Botones de acciones
             Column(
                 modifier = Modifier
                     .width(500.dp)
@@ -221,13 +209,11 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
             }
         }
 
-        // Dialog de edición
         if (showEditDialog) {
             EditProfileDialog(
                 usuario = usuario,
                 onDismiss = { showEditDialog = false },
                 onSave = { nombre, email, telefono, direccion ->
-                    // Crear un nuevo objeto Usuario con los datos actualizados para la API
                     val updatedUser = modelo.Usuario(
                         id = usuario.id,
                         nombre = nombre,
@@ -236,10 +222,8 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
                         direccion = direccion
                     )
 
-                    // Debug para verificar qué datos estamos enviando
                     println("Enviando datos para actualizar: $updatedUser")
 
-                    // Llamar a la API para actualizar el perfil
                     apiEditProfile(
                         userId = usuario.id,
                         nombre = nombre,
@@ -248,14 +232,10 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
                         direccion = direccion
                     ) { success, updatedUserResponse ->
                         if (success) {
-                            // IMPORTANTE: Actualizar el estado con los nuevos datos
-                            // Esto forzará la recomposición de la interfaz
                             if (updatedUserResponse != null) {
                                 usuario = updatedUserResponse
                                 println("Usuario actualizado en UI: $usuario")
                             } else {
-                                // Si la API devuelve success pero no devuelve el usuario,
-                                // usar los datos que enviamos
                                 usuario = updatedUser
                                 println("Usuario actualizado en UI (con datos locales): $usuario")
                             }
@@ -273,7 +253,6 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
             )
         }
 
-        // Mostrar Snackbar con mensaje de éxito o error
         if (showSnackbar) {
             Snackbar(
                 modifier = Modifier.padding(16.dp),
@@ -325,7 +304,6 @@ fun EditProfileDialog(
     onSave: (String, String, String, String) -> Unit,
     colors: ProfileColors
 ) {
-    // Estados para los campos de texto
     var nombre by remember { mutableStateOf(usuario.nombre) }
     var email by remember { mutableStateOf(usuario.email) }
     var telefono by remember { mutableStateOf(usuario.telefono) }
@@ -350,7 +328,6 @@ fun EditProfileDialog(
                 modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Campo de nombre
                 OutlinedTextField(
                     value = nombre,
                     onValueChange = { nombre = it },
@@ -371,7 +348,6 @@ fun EditProfileDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Campo de email
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -392,7 +368,6 @@ fun EditProfileDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Campo de teléfono
                 OutlinedTextField(
                     value = telefono,
                     onValueChange = { telefono = it },
@@ -413,7 +388,6 @@ fun EditProfileDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Campo de dirección
                 OutlinedTextField(
                     value = direccion,
                     onValueChange = { direccion = it },
