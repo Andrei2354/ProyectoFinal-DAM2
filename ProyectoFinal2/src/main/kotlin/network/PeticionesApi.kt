@@ -7,12 +7,8 @@ import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import modelo.EditProfileRequest
-import modelo.LoginRequest
+import modelo.*
 import network.NetworkUntils.httpClient
-import modelo.RegisterRequest
-import modelo.Usuario
 
 fun apiEditProfile(
     userId: Int,
@@ -20,7 +16,7 @@ fun apiEditProfile(
     email: String,
     direccion: String,
     telefono: String,
-    onComplete: (Boolean, modelo.Usuario?) -> Unit
+    onComplete: (Boolean, Usuario?) -> Unit
 ) {
     val url = "http://127.0.0.1:5000/edit_profile"
     CoroutineScope(Dispatchers.IO).launch {
@@ -29,7 +25,7 @@ fun apiEditProfile(
                 contentType(ContentType.Application.Json)
                 setBody(
                     mapOf(
-                        "id" to userId.toString(), // Convertir el userId a String
+                        "id" to userId.toString(),
                         "nombre" to nombre,
                         "email" to email,
                         "direccion" to direccion,
@@ -40,7 +36,7 @@ fun apiEditProfile(
 
             val success = response.status.isSuccess()
             val updatedUser = if (success) {
-                modelo.Usuario(
+                Usuario(
                     id = userId,
                     nombre = nombre,
                     email = email,
@@ -89,6 +85,84 @@ fun apiRegister(
             println("Register error: ${e.message}")
             CoroutineScope(Dispatchers.Main).launch {
                 onComplete(false)
+            }
+        }
+    }
+}
+
+fun apiGetProductos(onComplete: (List<Producto>) -> Unit) {
+    val url = "http://127.0.0.1:5000/productos"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.get(url)
+
+            if (response.status.isSuccess()) {
+                val productos = response.body<List<Producto>>()
+                CoroutineScope(Dispatchers.Main).launch {
+                    onComplete(productos)
+                }
+            } else {
+                println("Error al obtener productos: ${response.status}")
+                CoroutineScope(Dispatchers.Main).launch {
+                    onComplete(emptyList())
+                }
+            }
+        } catch (e: Exception) {
+            println("Error en la petición de productos: ${e.message}")
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(emptyList())
+            }
+        }
+    }
+}
+
+fun apiGetCategorias(onComplete: (List<Categoria>) -> Unit) {
+    val url = "http://127.0.0.1:5000/categorias"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.get(url)
+
+            if (response.status.isSuccess()) {
+                val categorias = response.body<List<Categoria>>()
+                CoroutineScope(Dispatchers.Main).launch {
+                    onComplete(categorias)
+                }
+            } else {
+                println("Error al obtener categorías: ${response.status}")
+                CoroutineScope(Dispatchers.Main).launch {
+                    onComplete(emptyList())
+                }
+            }
+        } catch (e: Exception) {
+            println("Error en la petición de categorías: ${e.message}")
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(emptyList())
+            }
+        }
+    }
+}
+
+fun apiGetMarcas(onComplete: (List<Marca>) -> Unit) {
+    val url = "http://127.0.0.1:5000/marcas"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.get(url)
+
+            if (response.status.isSuccess()) {
+                val marcas = response.body<List<Marca>>()
+                CoroutineScope(Dispatchers.Main).launch {
+                    onComplete(marcas)
+                }
+            } else {
+                println("Error al obtener marcas: ${response.status}")
+                CoroutineScope(Dispatchers.Main).launch {
+                    onComplete(emptyList())
+                }
+            }
+        } catch (e: Exception) {
+            println("Error en la petición de marcas: ${e.message}")
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(emptyList())
             }
         }
     }
