@@ -20,8 +20,8 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 
 class LoginScreen: Screen {
-     @Composable
-     override fun Content(){
+    @Composable
+    override fun Content(){
         val navigator = LocalNavigator.current
         var usuario by remember { mutableStateOf("") }
         var passwd by remember { mutableStateOf("") }
