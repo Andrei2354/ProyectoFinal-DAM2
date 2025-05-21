@@ -31,12 +31,14 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:3.0.3")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.3")
     implementation("io.ktor:ktor-client-cio:3.0.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
 
     // Voyager
     implementation("cafe.adriel.voyager:voyager-navigator:${property("voyager.version")}")
     implementation("cafe.adriel.voyager:voyager-transitions:${property("voyager.version")}")
     implementation("cafe.adriel.voyager:voyager-koin:${property("voyager.version")}")
     implementation("androidx.annotation:annotation-jvm:1.9.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
 }
 
 java {

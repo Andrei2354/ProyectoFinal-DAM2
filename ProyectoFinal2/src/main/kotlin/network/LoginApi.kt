@@ -18,7 +18,6 @@ fun apiLogin(usuario: String, password: String, onSuccessResponse: (Usuario) -> 
     CoroutineScope(Dispatchers.IO).launch {
         val response = httpClient.post(url){
             contentType(ContentType.Application.Json)
-            // Remove the sha512 hashing
             setBody(LoginRequest(usuario, password))
         }
         if (response.status == HttpStatusCode.OK){
@@ -29,3 +28,4 @@ fun apiLogin(usuario: String, password: String, onSuccessResponse: (Usuario) -> 
         }
     }
 }
+
