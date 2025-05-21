@@ -1,10 +1,6 @@
 package screens
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -17,35 +13,59 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.Navigator
+import network.apiLogin
+import kotlinx.coroutines.launch
 
 class LoginScreen: Screen {
     @Composable
-    override fun Content(){
+    override fun Content() {
         val navigator = LocalNavigator.current
         var usuario by remember { mutableStateOf("") }
         var passwd by remember { mutableStateOf("") }
+        var isLoading by remember { mutableStateOf(false) }
+        var errorMessage by remember { mutableStateOf("") }
+        val scope = rememberCoroutineScope()
+
+        // Definición de colores
         val blanco = Color(0xFFefeff2)
         val pupura = Color(0xFFa69eb0)
         val pastel = Color(0xFFf2e2cd)
         val gris = Color(0xFFdadae3)
         val negro = Color(0xFF011f4b)
-        Column(modifier = Modifier.fillMaxSize().background(pupura), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-            Column(modifier = Modifier.shadow(8.dp, shape = RoundedCornerShape(8.dp)).background(blanco).padding(10.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Login", modifier = Modifier.padding(20.dp), fontSize = TextUnit(value = 40f, type = TextUnitType.Sp))
+
+        Column(
+            modifier = Modifier.fillMaxSize().background(pupura),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Column(
+                modifier = Modifier
+                    .shadow(8.dp, shape = RoundedCornerShape(8.dp))
+                    .background(blanco)
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "Login",
+                    modifier = Modifier.padding(20.dp),
+                    fontSize = TextUnit(value = 40f, type = TextUnitType.Sp)
+                )
+
                 OutlinedTextField(
                     value = usuario,
-                    onValueChange = {usuario = it},
-                    label = { Text("Username") },
+                    onValueChange = { usuario = it },
+                    label = { Text("Email") },
                     modifier = Modifier,
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = pastel,
                         focusedLabelColor = pastel
                     )
                 )
+
                 OutlinedTextField(
                     value = passwd,
-                    onValueChange = {passwd = it},
+                    onValueChange = { passwd = it },
                     label = { Text("Password") },
                     modifier = Modifier,
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -53,14 +73,72 @@ class LoginScreen: Screen {
                         focusedLabelColor = pastel
                     )
                 )
-                Button(
-                    onClick = {
-                        navigator?.push(ShopScreen())
-                    },
+
+                if (errorMessage.isNotEmpty()) {
+                    Text(
+                        text = errorMessage,
+                        color = Color.Red,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+
+                // Row for buttons side by side
+                Row(
                     modifier = Modifier.padding(20.dp),
-                    colors = ButtonDefaults.buttonColors(backgroundColor = gris)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp) // Space between buttons
                 ) {
-                    Text("Iniciar Sesión", color = Color.White)
+                    // Login button
+                    Button(
+                        onClick = {
+                            if (usuario.isNotEmpty() && passwd.isNotEmpty()) {
+                                isLoading = true
+                                errorMessage = ""
+
+                                // Imprimir datos para depuración
+                                println("Intentando login con: $usuario, $passwd")
+
+                                // Llamar a la función de login
+                                apiLogin(usuario, passwd) { user ->
+                                    navigator?.push(ShopScreen(user))
+                                    usuario = ""
+                                    passwd = ""
+                                }
+
+                                // Manejo de errores
+                                scope.launch {
+                                    kotlinx.coroutines.delay(3000)
+                                    if (isLoading) {
+                                        isLoading = false
+                                        errorMessage = "Error al iniciar sesión. Verifica tus credenciales."
+                                    }
+                                }
+                            } else {
+                                errorMessage = "Por favor completa todos los campos"
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = gris),
+                        enabled = !isLoading
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.padding(end = 8.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                        Text("Iniciar Sesión", color = Color.White)
+                    }
+
+                    // Create Account button
+                    Button(
+                        onClick = {
+                            // Navigate to the registration screen
+                            navigator?.push(RegisterScreen())
+                        },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = pastel)
+                    ) {
+                        Text("Crear Cuenta", color = Color.White)
+                    }
                 }
             }
         }
