@@ -33,37 +33,31 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import cafe.adriel.voyager.navigator.currentOrThrow
 import androidx.compose.runtime.*
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
+import modelo.ProfileColors
+import network.apiEditProfile
 
-class ProfileScreen : Screen {
+class ProfileScreen(val user: modelo.Usuario) : Screen {
     @Composable
-    override fun Content(){
+    override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val pastel = Color(0xFFf2e2cd)
-        val lila = Color(0xFFa69eb0)
-        val negro = Color(0xFF011f4b)
-        val blanco = Color(0xFFefeff2)
-        val pupura = Color(0xFFa69eb0)
+        val colors = ProfileColors()
 
         // Estado para manejar los datos del usuario
-        var usuario by remember {
-            mutableStateOf(
-                Usuario(
-                    nombre = "Ana García",
-                    email = "ana@tienda.com",
-                    telefono = "+34 612 345 678",
-                    direccion = "Calle Principal 123, Madrid"
-                )
-            )
-        }
+        var usuario by remember { mutableStateOf(user) }
 
         // Estado para controlar la visibilidad del dialog
         var showEditDialog by remember { mutableStateOf(false) }
 
+        // Estado para mostrar mensaje de éxito o error
+        var showSnackbar by remember { mutableStateOf(false) }
+        var snackbarMessage by remember { mutableStateOf("") }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(pupura)
+                .background(colors.pupura)
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -82,7 +76,7 @@ class ProfileScreen : Screen {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Volver",
-                        tint = negro
+                        tint = colors.negro
                     )
                 }
             }
@@ -97,7 +91,7 @@ class ProfileScreen : Screen {
                     style = TextStyle(
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = negro
+                        color = colors.negro
                     )
                 )
                 Spacer(modifier = Modifier.size(40.dp))
@@ -105,31 +99,24 @@ class ProfileScreen : Screen {
                     modifier = Modifier
                         .size(120.dp)
                         .clip(CircleShape)
-                        .background(pastel.copy(alpha = 0.3f))
-                        .border(2.dp, pastel, CircleShape),
+                        .background(colors.pastel.copy(alpha = 0.3f))
+                        .border(2.dp, colors.pastel, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Avatar",
-                        tint = negro,
+                        tint = colors.negro,
                         modifier = Modifier.size(60.dp)
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    usuario.nombre,
+                    usuario.nombre, // Usa el usuario del estado
                     style = TextStyle(
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = negro
-                    )
-                )
-                Text(
-                    "Miembro desde 2023",
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        color = negro.copy(alpha = 0.6f)
+                        color = colors.negro
                     )
                 )
             }
@@ -141,14 +128,56 @@ class ProfileScreen : Screen {
                     .padding(vertical = 8.dp),
                 elevation = 4.dp,
                 shape = RoundedCornerShape(12.dp),
-                backgroundColor = blanco
+                backgroundColor = colors.blanco
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    InfoRow(Icons.Default.Email, "Email", usuario.email)
+                    InfoRow(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Nombre",
+                                tint = colors.lila
+                            )
+                        },
+                        title = "Nombre",
+                        value = usuario.nombre // Usa el usuario del estado
+                    )
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
-                    InfoRow(Icons.Default.Phone, "Teléfono", usuario.telefono)
+                    InfoRow(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = "Email",
+                                tint = colors.lila
+                            )
+                        },
+                        title = "Email",
+                        value = usuario.email // Usa el usuario del estado
+                    )
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
-                    InfoRow(Icons.Default.LocationOn, "Dirección", usuario.direccion)
+                    InfoRow(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Phone,
+                                contentDescription = "Teléfono",
+                                tint = colors.lila
+                            )
+                        },
+                        title = "Teléfono",
+                        value = usuario.telefono // Usa el usuario del estado
+                    )
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    InfoRow(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "Dirección",
+                                tint = colors.lila
+                            )
+                        },
+                        title = "Dirección",
+                        value = usuario.direccion // Usa el usuario del estado
+                    )
                 }
             }
 
@@ -166,24 +195,26 @@ class ProfileScreen : Screen {
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = lila,
-                        contentColor = blanco
+                        backgroundColor = colors.lila,
+                        contentColor = colors.blanco
                     )
                 ) {
                     Text("Editar Perfil", fontSize = 16.sp)
                 }
 
                 Button(
-                    onClick = { /* Cerrar sesión */ },
+                    onClick = {
+                        navigator.push(LoginScreen())
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = blanco,
-                        contentColor = lila
+                        backgroundColor = colors.blanco,
+                        contentColor = colors.lila
                     ),
-                    border = BorderStroke(1.dp, lila)
+                    border = BorderStroke(1.dp, colors.lila)
                 ) {
                     Text("Cerrar Sesión", fontSize = 16.sp)
                 }
@@ -195,32 +226,77 @@ class ProfileScreen : Screen {
             EditProfileDialog(
                 usuario = usuario,
                 onDismiss = { showEditDialog = false },
-                onSave = { usuarioActualizado ->
-                    usuario = usuarioActualizado
-                    showEditDialog = false
+                onSave = { nombre, email, telefono, direccion ->
+                    // Crear un nuevo objeto Usuario con los datos actualizados para la API
+                    val updatedUser = modelo.Usuario(
+                        id = usuario.id,
+                        nombre = nombre,
+                        email = email,
+                        telefono = telefono,
+                        direccion = direccion
+                    )
+
+                    // Debug para verificar qué datos estamos enviando
+                    println("Enviando datos para actualizar: $updatedUser")
+
+                    // Llamar a la API para actualizar el perfil
+                    apiEditProfile(
+                        userId = usuario.id,
+                        nombre = nombre,
+                        email = email,
+                        telefono = telefono,
+                        direccion = direccion
+                    ) { success, updatedUserResponse ->
+                        if (success) {
+                            // IMPORTANTE: Actualizar el estado con los nuevos datos
+                            // Esto forzará la recomposición de la interfaz
+                            if (updatedUserResponse != null) {
+                                usuario = updatedUserResponse
+                                println("Usuario actualizado en UI: $usuario")
+                            } else {
+                                // Si la API devuelve success pero no devuelve el usuario,
+                                // usar los datos que enviamos
+                                usuario = updatedUser
+                                println("Usuario actualizado en UI (con datos locales): $usuario")
+                            }
+
+                            showSnackbar = true
+                            snackbarMessage = "Perfil actualizado correctamente"
+                        } else {
+                            showSnackbar = true
+                            snackbarMessage = "Error al actualizar el perfil"
+                        }
+                        showEditDialog = false
+                    }
                 },
-                colors = ProfileColors(
-                    pastel = pastel,
-                    lila = lila,
-                    negro = negro,
-                    blanco = blanco
-                )
+                colors = colors
             )
+        }
+
+        // Mostrar Snackbar con mensaje de éxito o error
+        if (showSnackbar) {
+            Snackbar(
+                modifier = Modifier.padding(16.dp),
+                action = {
+                    TextButton(onClick = { showSnackbar = false }) {
+                        Text("OK")
+                    }
+                }
+            ) {
+                Text(snackbarMessage)
+            }
         }
     }
 
     @Composable
-    fun InfoRow(icon: ImageVector, title: String, value: String) {
+    fun InfoRow(icon: @Composable () -> Unit, title: String, value: String) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = Color(0xFFa69eb0),
-                modifier = Modifier.size(24.dp)
-            )
+            Box(modifier = Modifier.size(24.dp)) {
+                icon()
+            }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
@@ -241,28 +317,13 @@ class ProfileScreen : Screen {
             }
         }
     }
-
-    data class Usuario(
-        val nombre: String,
-        val email: String,
-        val telefono: String,
-        val direccion: String
-    )
-
-    data class ProfileColors(
-        val pastel: Color,
-        val lila: Color,
-        val negro: Color,
-        val blanco: Color
-    )
 }
-
 @Composable
 fun EditProfileDialog(
-    usuario: ProfileScreen.Usuario,
+    usuario: modelo.Usuario,
     onDismiss: () -> Unit,
-    onSave: (ProfileScreen.Usuario) -> Unit,
-    colors: ProfileScreen.ProfileColors
+    onSave: (String, String, String, String) -> Unit,
+    colors: ProfileColors
 ) {
     // Estados para los campos de texto
     var nombre by remember { mutableStateOf(usuario.nombre) }
@@ -270,30 +331,25 @@ fun EditProfileDialog(
     var telefono by remember { mutableStateOf(usuario.telefono) }
     var direccion by remember { mutableStateOf(usuario.direccion) }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            backgroundColor = colors.blanco,
-            elevation = 8.dp
-        ) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Editar Perfil",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.negro
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        },
+        text = {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Título del dialog
-                Text(
-                    text = "Editar Perfil",
-                    style = TextStyle(
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.negro
-                    ),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-
                 // Campo de nombre
                 OutlinedTextField(
                     value = nombre,
@@ -377,48 +433,40 @@ fun EditProfileDialog(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
-
-                // Botones de acción
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Botón Cancelar
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f),
-                        border = BorderStroke(1.dp, colors.lila),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = colors.lila
-                        )
-                    ) {
-                        Text("Cancelar")
-                    }
-
-                    // Botón Guardar
-                    Button(
-                        onClick = {
-                            onSave(
-                                ProfileScreen.Usuario(
-                                    nombre = nombre.trim(),
-                                    email = email.trim(),
-                                    telefono = telefono.trim(),
-                                    direccion = direccion.trim()
-                                )
-                            )
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = colors.lila,
-                            contentColor = colors.blanco
-                        )
-                    ) {
-                        Text("Guardar")
-                    }
-                }
             }
-        }
-    }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onSave(
+                        nombre.trim(),
+                        email.trim(),
+                        telefono.trim(),
+                        direccion.trim()
+                    )
+                },
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = colors.lila,
+                    contentColor = colors.blanco
+                )
+            ) {
+                Text("Guardar")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(
+                onClick = onDismiss,
+                border = BorderStroke(1.dp, colors.lila),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = colors.lila
+                )
+            ) {
+                Text("Cancelar")
+            }
+        },
+        backgroundColor = colors.blanco,
+        shape = RoundedCornerShape(16.dp)
+    )
 }
