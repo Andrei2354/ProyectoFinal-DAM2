@@ -94,7 +94,7 @@ class ProductoDetalleScreen(val producto: Producto): Screen {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp)
+                    .height(325.dp)
                     .padding(horizontal = 20.dp)
                     .padding(bottom = 20.dp),
                 shape = RoundedCornerShape(16.dp),
@@ -117,7 +117,7 @@ class ProductoDetalleScreen(val producto: Producto): Screen {
                     ) {
                         Card(
                             modifier = Modifier
-                                .size(160.dp).height(250.dp),
+                                .size(250.dp),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = gris

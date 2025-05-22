@@ -7,6 +7,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import modelo.*
 import network.NetworkUntils.httpClient
 
@@ -163,6 +164,130 @@ fun apiGetMarcas(onComplete: (List<Marca>) -> Unit) {
             println("Error en la petición de marcas: ${e.message}")
             CoroutineScope(Dispatchers.Main).launch {
                 onComplete(emptyList())
+            }
+        }
+    }
+}
+private val json = Json { ignoreUnknownKeys = true }
+
+fun apiAgregarAlCarrito(
+    usuarioId: Int,
+    productoId: Int,
+    cantidad: Int,
+    precioUnitario: Double,
+    onComplete: (Boolean, String) -> Unit
+) {
+    val url = "http://127.0.0.1:5000/carrito/agregar"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(CarritoRequest(usuarioId, productoId, cantidad, precioUnitario))
+            }
+
+            val responseBody = response.bodyAsText()
+            val success = response.status.isSuccess()
+
+            CoroutineScope(Dispatchers.Main).launch {
+                if (success) {
+                    onComplete(true, "Producto agregado al carrito")
+                } else {
+                    onComplete(false, "Error al agregar producto")
+                }
+            }
+
+            println("Agregar carrito response: ${response.status}, $responseBody")
+        } catch (e: Exception) {
+            println("Agregar carrito error: ${e.message}")
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(false, "Error de conexión")
+            }
+        }
+    }
+}
+
+fun apiObtenerCarrito(
+    usuarioId: Int,
+    onComplete: (List<ItemCarrito>) -> Unit
+) {
+    val url = "http://127.0.0.1:5000/carrito/$usuarioId"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.get(url)
+
+            if (response.status.isSuccess()) {
+                val responseBody = response.bodyAsText()
+                val carritoResponse = json.decodeFromString<CarritoResponse>(responseBody)
+
+                CoroutineScope(Dispatchers.Main).launch {
+                    onComplete(carritoResponse.carrito)
+                }
+            } else {
+                CoroutineScope(Dispatchers.Main).launch {
+                    onComplete(emptyList())
+                }
+            }
+
+            println("Obtener carrito response: ${response.status}")
+        } catch (e: Exception) {
+            println("Obtener carrito error: ${e.message}")
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(emptyList())
+            }
+        }
+    }
+}
+
+fun apiActualizarCantidad(
+    idCarrito: Int,
+    nuevaCantidad: Int,
+    onComplete: (Boolean) -> Unit
+) {
+    val url = "http://127.0.0.1:5000/carrito/actualizar"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.put(url) {
+                contentType(ContentType.Application.Json)
+                setBody(ActualizarCantidadRequest(idCarrito, nuevaCantidad))
+            }
+
+            val success = response.status.isSuccess()
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(success)
+            }
+
+            println("Actualizar cantidad response: ${response.status}")
+        } catch (e: Exception) {
+            println("Actualizar cantidad error: ${e.message}")
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(false)
+            }
+        }
+    }
+}
+
+fun apiEliminarDelCarrito(
+    idCarrito: Int,
+    onComplete: (Boolean) -> Unit
+) {
+    val url = "http://127.0.0.1:5000/carrito/eliminar"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.delete(url) {
+                contentType(ContentType.Application.Json)
+                setBody(EliminarItemRequest(idCarrito))
+            }
+
+            val success = response.status.isSuccess()
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(success)
+            }
+
+            println("Eliminar del carrito response: ${response.status}")
+        } catch (e: Exception) {
+            println("Eliminar del carrito error: ${e.message}")
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(false)
             }
         }
     }
