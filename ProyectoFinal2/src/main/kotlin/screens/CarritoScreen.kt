@@ -38,43 +38,70 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
+import modelo.Usuario
+import modelo.ItemCarrito
+import network.*
+import androidx.compose.runtime.derivedStateOf
 
-class CarritoScreen : Screen {
+
+object CarritoRefresh {
+    var lastUpdate by mutableStateOf(0L)
+
+    fun notifyUpdate() {
+        lastUpdate = System.currentTimeMillis()
+    }
+}
+
+class CarritoScreen(val usuario: Usuario? = null) : Screen {
     @Composable
-    override fun Content(){
+    override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val lila = Color(0xFFa69eb0)
         val pastel = Color(0xFFf2e2cd)
         val negro = Color(0xFF011f4b)
         val blanco = Color(0xFFefeff2)
-        val pupura = Color(0xFFa69eb0)
+        val purpura = Color(0xFFa69eb0)
 
-        var carrito by remember {
-            mutableStateOf(
-                listOf(
-                    ProductoCarrito("Móvil", "$59.99", 1),
-                    ProductoCarrito("Lavadora básica", "$19.99", 2),
-                    ProductoCarrito("3070Ti", "$14.99", 1),
-                    ProductoCarrito("Móvil", "$59.99", 1),
-                    ProductoCarrito("Lavadora básica", "$19.99", 2),
-                    ProductoCarrito("3070Ti", "$14.99", 1),
-                    ProductoCarrito("Móvil", "$59.99", 1),
-                    ProductoCarrito("Lavadora básica", "$19.99", 2),
-                    ProductoCarrito("3070Ti", "$14.99", 1)
-                )
-            )
+
+        var carritoItems by remember { mutableStateOf<List<ItemCarrito>>(emptyList()) }
+        var cargando by remember { mutableStateOf(true) }
+        var showPaymentDialog by remember { mutableStateOf(false) }
+        val lastUpdate by remember { derivedStateOf { CarritoRefresh.lastUpdate } }
+
+        LaunchedEffect(key1 = usuario?.id) {
+            usuario?.let { user ->
+                apiObtenerCarrito(user.id) { items ->
+                    carritoItems = items
+                    cargando = false
+                }
+            } ?: run {
+                cargando = false
+            }
         }
 
-        var showPaymentDialog by remember { mutableStateOf(false) }
+        LaunchedEffect(lastUpdate) {
+            if (lastUpdate > 0) {
+                usuario?.let { user ->
+                    cargando = true
+                    apiObtenerCarrito(user.id) { items ->
+                        carritoItems = items
+                        cargando = false
+                    }
+                }
+            }
+        }
 
-        val subtotal = carrito.sumOf { it.precio.removePrefix("$").toDouble() * it.cantidad }
+        val subtotal = carritoItems.sumOf { it.precio_unitario * it.cantidad }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(pupura)
+                .background(purpura)
                 .padding(horizontal = 16.dp)
         ) {
+            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -97,7 +124,7 @@ class CarritoScreen : Screen {
                     style = TextStyle(
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = negro
+                        color = blanco
                     )
                 )
                 Badge(
@@ -105,95 +132,159 @@ class CarritoScreen : Screen {
                     backgroundColor = blanco,
                     contentColor = lila
                 ) {
-                    Text(carrito.sumOf { it.cantidad }.toString())
+                    Text(carritoItems.sumOf { it.cantidad }.toString())
                 }
             }
 
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(carrito) { producto ->
-                    ItemCarrito(
-                        producto = producto,
-                        onIncrease = {
-                            carrito = carrito.map {
-                                if (it == producto) it.copy(cantidad = it.cantidad + 1) else it
-                            }
-                        },
-                        onDecrease = {
-                            if (producto.cantidad > 1) {
-                                carrito = carrito.map {
-                                    if (it == producto) it.copy(cantidad = it.cantidad - 1) else it
+            if (cargando) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = blanco)
+                }
+            } else if (carritoItems.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ShoppingCart,
+                            contentDescription = "Carrito vacío",
+                            tint = blanco,
+                            modifier = Modifier.size(80.dp)
+                        )
+                        Text(
+                            text = "Tu carrito está vacío",
+                            color = blanco,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Button(
+                            onClick = { navigator.pop() },
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = blanco,
+                                contentColor = purpura
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Seguir comprando")
+                        }
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(carritoItems) { item ->
+                        ItemCarritoCard(
+                            item = item,
+                            onIncrease = {
+                                apiActualizarCantidad(item.id_carrito, item.cantidad + 1) { success ->
+                                    if (success) {
+                                        carritoItems = carritoItems.map {
+                                            if (it.id_carrito == item.id_carrito)
+                                                it.copy(cantidad = it.cantidad + 1)
+                                            else it
+                                        }
+                                    }
+                                }
+                            },
+                            onDecrease = {
+                                if (item.cantidad > 1) {
+                                    apiActualizarCantidad(item.id_carrito, item.cantidad - 1) { success ->
+                                        if (success) {
+                                            // Actualizar localmente para respuesta inmediata
+                                            carritoItems = carritoItems.map {
+                                                if (it.id_carrito == item.id_carrito)
+                                                    it.copy(cantidad = it.cantidad - 1)
+                                                else it
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            onRemove = {
+                                apiEliminarDelCarrito(item.id_carrito) { success ->
+                                    if (success) {
+                                        // Actualizar localmente para respuesta inmediata
+                                        carritoItems = carritoItems.filter { it.id_carrito != item.id_carrito }
+                                    }
                                 }
                             }
-                        },
-                        onRemove = {
-                            carrito = carrito.filter { it != producto }
-                        }
-                    )
+                        )
+                    }
                 }
-            }
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 20.dp)
-                    .padding(horizontal = 200.dp),
-                elevation = 8.dp,
-                shape = RoundedCornerShape(12.dp),
-                backgroundColor = blanco
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Subtotal", style = TextStyle(fontSize = 16.sp))
-                        Text("$${"%.2f".format(subtotal)}", style = TextStyle(fontWeight = FontWeight.Bold))
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Envío", style = TextStyle(fontSize = 16.sp))
-                        Text("Gratis", style = TextStyle(color = negro))
-                    }
-                    Divider(modifier = Modifier.padding(vertical = 12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            "Total",
-                            style = TextStyle(
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 20.dp),
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    backgroundColor = blanco
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Subtotal", style = TextStyle(fontSize = 16.sp))
+                            Text("${"%.2f".format(subtotal)}€", style = TextStyle(fontWeight = FontWeight.Bold))
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Envío", style = TextStyle(fontSize = 16.sp))
+                            Text("Gratis", style = TextStyle(color = negro))
+                        }
+                        Divider(modifier = Modifier.padding(vertical = 12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Total",
+                                style = TextStyle(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             )
-                        )
-                        Text(
-                            "$${"%.2f".format(subtotal)}",
-                            style = TextStyle(
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = lila
+                            Text(
+                                "${"%.2f".format(subtotal)}€",
+                                style = TextStyle(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = lila
+                                )
                             )
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { showPaymentDialog = true },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = lila,
-                            contentColor = blanco
-                        ),
-                        enabled = carrito.isNotEmpty()
-                    ) {
-                        Text("Proceder al pago", fontSize = 16.sp)
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { showPaymentDialog = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = lila,
+                                contentColor = blanco
+                            ),
+                            enabled = carritoItems.isNotEmpty()
+                        ) {
+                            Text("Proceder al pago", fontSize = 16.sp)
+                        }
                     }
                 }
             }
@@ -205,7 +296,7 @@ class CarritoScreen : Screen {
                 onDismiss = { showPaymentDialog = false },
                 onPaymentSuccess = {
                     showPaymentDialog = false
-                    carrito = emptyList()
+                    carritoItems = emptyList()
                 },
                 colors = CarritoColors(
                     lila = lila,
@@ -218,8 +309,8 @@ class CarritoScreen : Screen {
     }
 
     @Composable
-    fun ItemCarrito(
-        producto: ProductoCarrito,
+    fun ItemCarritoCard(
+        item: ItemCarrito,
         onIncrease: () -> Unit,
         onDecrease: () -> Unit,
         onRemove: () -> Unit
@@ -229,7 +320,7 @@ class CarritoScreen : Screen {
         val blanco = Color(0xFFefeff2)
 
         Card(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 200.dp),
+            modifier = Modifier.fillMaxWidth(),
             elevation = 2.dp,
             shape = RoundedCornerShape(12.dp),
             backgroundColor = blanco
@@ -244,16 +335,38 @@ class CarritoScreen : Screen {
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(lila.copy(alpha = 0.1f))
-                        .border(1.dp, lila.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
+                        .background(Color.LightGray),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.ShoppingBag,
-                        contentDescription = "Producto",
-                        tint = lila,
-                        modifier = Modifier.size(40.dp)
-                    )
+                    if (item.imagen_url.isNotEmpty()) {
+                        LoadImage(
+                            url = item.imagen_url,
+                            contentDescription = item.nombre_producto,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            loadingContent = {
+                                CircularProgressIndicator(
+                                    color = lila,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            },
+                            errorContent = {
+                                Icon(
+                                    imageVector = Icons.Default.ShoppingBag,
+                                    contentDescription = "Producto",
+                                    tint = lila,
+                                    modifier = Modifier.size(40.dp)
+                                )
+                            }
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.ShoppingBag,
+                            contentDescription = "Producto",
+                            tint = lila,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
                 }
 
                 Column(
@@ -262,14 +375,16 @@ class CarritoScreen : Screen {
                         .padding(horizontal = 12.dp)
                 ) {
                     Text(
-                        producto.nombre,
+                        item.nombre_producto,
                         style = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
-                        )
+                        ),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        producto.precio,
+                        "${"%.2f".format(item.precio_unitario)}€",
                         style = TextStyle(
                             fontSize = 14.sp,
                             color = negro.copy(alpha = 0.7f)
@@ -299,7 +414,7 @@ class CarritoScreen : Screen {
                             )
                         }
                         Text(
-                            producto.cantidad.toString(),
+                            item.cantidad.toString(),
                             modifier = Modifier.padding(horizontal = 4.dp),
                             fontSize = 16.sp
                         )
@@ -330,12 +445,6 @@ class CarritoScreen : Screen {
             }
         }
     }
-
-    data class ProductoCarrito(
-        val nombre: String,
-        val precio: String,
-        val cantidad: Int
-    )
 
     data class CarritoColors(
         val lila: Color,
@@ -655,7 +764,7 @@ fun PaymentDialog(
                                 else -> nombreFacturacion.isNotBlank() && direccionFacturacion.isNotBlank()
                             }
                         ) {
-                            Text("Pagar $${"%.2f".format(total)}")
+                            Text("Pagar ${"%.2f".format(total)}€")
                         }
                     }
                 }
