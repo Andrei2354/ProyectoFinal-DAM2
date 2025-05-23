@@ -33,7 +33,7 @@ fun main() = application {
 
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Mi App",
+        title = "Tekkio",
         state = windowState,
         resizable = true,
         icon = painterResource("drawable/icono1.png")
