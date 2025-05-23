@@ -184,7 +184,7 @@ class CarritoScreen(val usuario: Usuario? = null) : Screen {
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(carritoItems) { item ->
+                    items(carritoItems.sortedBy { it.nombre_producto }) { item ->
                         ItemCarritoCard(
                             item = item,
                             onIncrease = {
