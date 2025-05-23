@@ -101,7 +101,6 @@ class CarritoScreen(val usuario: Usuario? = null) : Screen {
                 .background(purpura)
                 .padding(horizontal = 16.dp)
         ) {
-            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -191,11 +190,7 @@ class CarritoScreen(val usuario: Usuario? = null) : Screen {
                             onIncrease = {
                                 apiActualizarCantidad(item.id_carrito, item.cantidad + 1) { success ->
                                     if (success) {
-                                        carritoItems = carritoItems.map {
-                                            if (it.id_carrito == item.id_carrito)
-                                                it.copy(cantidad = it.cantidad + 1)
-                                            else it
-                                        }
+                                        CarritoRefresh.notifyUpdate()
                                     }
                                 }
                             },
@@ -203,12 +198,7 @@ class CarritoScreen(val usuario: Usuario? = null) : Screen {
                                 if (item.cantidad > 1) {
                                     apiActualizarCantidad(item.id_carrito, item.cantidad - 1) { success ->
                                         if (success) {
-                                            // Actualizar localmente para respuesta inmediata
-                                            carritoItems = carritoItems.map {
-                                                if (it.id_carrito == item.id_carrito)
-                                                    it.copy(cantidad = it.cantidad - 1)
-                                                else it
-                                            }
+                                            CarritoRefresh.notifyUpdate()
                                         }
                                     }
                                 }
@@ -216,8 +206,7 @@ class CarritoScreen(val usuario: Usuario? = null) : Screen {
                             onRemove = {
                                 apiEliminarDelCarrito(item.id_carrito) { success ->
                                     if (success) {
-                                        // Actualizar localmente para respuesta inmediata
-                                        carritoItems = carritoItems.filter { it.id_carrito != item.id_carrito }
+                                        CarritoRefresh.notifyUpdate()
                                     }
                                 }
                             }
