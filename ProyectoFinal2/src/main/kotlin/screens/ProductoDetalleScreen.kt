@@ -23,6 +23,8 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import modelo.Producto
 import modelo.Usuario
+import modelo.Marca
+import modelo.Categoria
 import network.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -42,21 +44,51 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
         val negro = Color(0xFF011f4b)
         val purpura = Color(0xFFa69eb0)
 
+        var productoActual by remember(producto.id_producto) { mutableStateOf(producto) }
         var productosRelacionadosMarca by remember { mutableStateOf<List<Producto>>(emptyList()) }
         var productosRelacionadosCategoria by remember { mutableStateOf<List<Producto>>(emptyList()) }
         var cargandoRelacionados by remember { mutableStateOf(true) }
+        var marcas by remember { mutableStateOf<List<Marca>>(emptyList()) }
+        var categorias by remember { mutableStateOf<List<Categoria>>(emptyList()) }
+        var cargandoMarcasYCategorias by remember { mutableStateOf(true) }
 
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
 
-        LaunchedEffect(producto.id_producto) {
+        fun obtenerNombreMarca(idMarca: Int): String {
+            return marcas.find { it.id == idMarca }?.nombre ?: "Marca desconocida"
+        }
+
+        fun obtenerNombreCategoria(idCategoria: Int): String {
+            return categorias.find { it.id == idCategoria }?.nombre ?: "Categoría desconocida"
+        }
+
+        fun cambiarProducto(nuevoProducto: Producto) {
+            productoActual = nuevoProducto
+        }
+
+        LaunchedEffect(Unit) {
+            apiGetMarcas { listaMarcas ->
+                marcas = listaMarcas
+                apiGetCategorias { listaCategorias ->
+                    categorias = listaCategorias
+                    cargandoMarcasYCategorias = false
+                }
+            }
+        }
+
+        LaunchedEffect(productoActual.id_producto, productoActual.id_marca, productoActual.id_categoria) {
+            productosRelacionadosMarca = emptyList()
+            productosRelacionadosCategoria = emptyList()
+            cargandoRelacionados = true
+
             apiGetProductos { todosLosProductos ->
                 productosRelacionadosMarca = todosLosProductos
-                    .filter { it.id_marca == producto.id_marca && it.id_producto != producto.id_producto }
+                    .filter { it.id_marca == productoActual.id_marca && it.id_producto != productoActual.id_producto }
                     .take(5)
 
                 productosRelacionadosCategoria = todosLosProductos
-                    .filter { it.id_categoria == producto.id_categoria && it.id_producto != producto.id_producto }
+                    .filter { it.id_categoria == productoActual.id_categoria && it.id_producto != productoActual.id_producto }
                     .take(5)
 
                 cargandoRelacionados = false
@@ -131,7 +163,7 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                     }
                 }
 
-                item {
+                item(key = "producto_principal_${productoActual.id_producto}") {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -167,10 +199,10 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                         modifier = Modifier.fillMaxSize(),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        if (producto.imagen_url.isNotEmpty()) {
+                                        if (productoActual.imagen_url.isNotEmpty()) {
                                             LoadImage(
-                                                url = producto.imagen_url,
-                                                contentDescription = producto.nombre,
+                                                url = productoActual.imagen_url,
+                                                contentDescription = productoActual.nombre,
                                                 modifier = Modifier
                                                     .fillMaxSize()
                                                     .clip(RoundedCornerShape(12.dp)),
@@ -218,7 +250,7 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Text(
-                                        text = producto.nombre,
+                                        text = productoActual.nombre,
                                         color = negro,
                                         fontSize = 20.sp,
                                         fontWeight = FontWeight.Bold,
@@ -232,7 +264,7 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                         )
                                     ) {
                                         Text(
-                                            text = "${producto.precio}€",
+                                            text = "${productoActual.precio}€",
                                             color = negro,
                                             fontSize = 24.sp,
                                             fontWeight = FontWeight.ExtraBold,
@@ -243,20 +275,54 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                     Column(
                                         verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
+                                        if (!cargandoMarcasYCategorias) {
+                                            Text(
+                                                text = "Categoría: ${obtenerNombreCategoria(productoActual.id_categoria)}",
+                                                color = negro,
+                                                fontSize = 16.sp,
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                            )
+                                            Text(
+                                                text = "Marca: ${obtenerNombreMarca(productoActual.id_marca)}",
+                                                color = negro,
+                                                fontSize = 16.sp,
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                            )
+                                        } else {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = "Categoría: ",
+                                                    color = negro,
+                                                    fontSize = 16.sp
+                                                )
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(16.dp),
+                                                    color = purpura,
+                                                    strokeWidth = 2.dp
+                                                )
+                                            }
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = "Marca: ",
+                                                    color = negro,
+                                                    fontSize = 16.sp
+                                                )
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(16.dp),
+                                                    color = purpura,
+                                                    strokeWidth = 2.dp
+                                                )
+                                            }
+                                        }
+
                                         Text(
-                                            text = "Categoría: ${producto.id_categoria}",
-                                            color = negro,
-                                            fontSize = 16.sp,
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                                        )
-                                        Text(
-                                            text = "Marca: ${producto.id_marca}",
-                                            color = negro,
-                                            fontSize = 16.sp,
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                                        )
-                                        Text(
-                                            text = "Descripción: ${producto.descripcion}",
+                                            text = "Descripción: ${productoActual.descripcion}",
                                             color = negro,
                                             fontSize = 16.sp,
                                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -267,15 +333,15 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                                 usuario?.let { user ->
                                                     apiAgregarAlCarrito(
                                                         usuarioId = user.id,
-                                                        productoId = producto.id_producto,
+                                                        productoId = productoActual.id_producto,
                                                         cantidad = 1,
-                                                        precioUnitario = producto.precio
+                                                        precioUnitario = productoActual.precio
                                                     ) { success, mensaje ->
                                                         scope.launch {
                                                             if (success) {
                                                                 CarritoRefresh.notifyUpdate()
                                                                 snackbarHostState.showSnackbar(
-                                                                    message = "¡${producto.nombre} agregado al carrito!",
+                                                                    message = "¡${productoActual.nombre} agregado al carrito!",
                                                                     withDismissAction = true
                                                                 )
                                                             } else {
@@ -324,8 +390,8 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                     }
                 }
 
-                if (!cargandoRelacionados && productosRelacionadosMarca.isNotEmpty()) {
-                    item {
+                if (!cargandoRelacionados && productosRelacionadosMarca.isNotEmpty() && !cargandoMarcasYCategorias) {
+                    item(key = "seccion_marca_${productoActual.id_producto}") {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -333,7 +399,7 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                 .padding(bottom = 16.dp)
                         ) {
                             Text(
-                                text = "Productos de la misma marca",
+                                text = "Más productos de ${obtenerNombreMarca(productoActual.id_marca)}",
                                 color = blanco,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
@@ -344,11 +410,14 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 contentPadding = PaddingValues(horizontal = 4.dp)
                             ) {
-                                items(productosRelacionadosMarca) { productoRelacionado ->
+                                items(
+                                    items = productosRelacionadosMarca,
+                                    key = { "marca_${productoActual.id_producto}_${it.id_producto}" }
+                                ) { productoRelacionado ->
                                     ProductoRelacionadoCard(
                                         producto = productoRelacionado,
                                         onProductClick = {
-                                            navigator?.push(ProductoDetalleScreen(productoRelacionado, usuario))
+                                            cambiarProducto(productoRelacionado)
                                         },
                                         onAddToCart = {
                                             usuario?.let { user ->
@@ -383,8 +452,8 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                     }
                 }
 
-                if (!cargandoRelacionados && productosRelacionadosCategoria.isNotEmpty()) {
-                    item {
+                if (!cargandoRelacionados && productosRelacionadosCategoria.isNotEmpty() && !cargandoMarcasYCategorias) {
+                    item(key = "seccion_categoria_${productoActual.id_producto}") {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -392,7 +461,7 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                 .padding(bottom = 20.dp)
                         ) {
                             Text(
-                                text = "Productos de la misma categoría",
+                                text = "Más productos de ${obtenerNombreCategoria(productoActual.id_categoria)}",
                                 color = blanco,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
@@ -403,11 +472,14 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 contentPadding = PaddingValues(horizontal = 4.dp)
                             ) {
-                                items(productosRelacionadosCategoria) { productoRelacionado ->
+                                items(
+                                    items = productosRelacionadosCategoria,
+                                    key = { "categoria_${productoActual.id_producto}_${it.id_producto}" }
+                                ) { productoRelacionado ->
                                     ProductoRelacionadoCard(
                                         producto = productoRelacionado,
                                         onProductClick = {
-                                            navigator?.push(ProductoDetalleScreen(productoRelacionado, usuario))
+                                            cambiarProducto(productoRelacionado)
                                         },
                                         onAddToCart = {
                                             usuario?.let { user ->
@@ -438,6 +510,22 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                     )
                                 }
                             }
+                        }
+                    }
+                }
+
+                if (cargandoRelacionados) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(40.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = blanco,
+                                modifier = Modifier.size(32.dp)
+                            )
                         }
                     }
                 }
