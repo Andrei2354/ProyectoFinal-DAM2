@@ -181,7 +181,7 @@ class CarritoScreen(val usuario: Usuario? = null) : Screen {
                 }
             } else {
                 LazyColumn(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).padding(horizontal = 250.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(carritoItems.sortedBy { it.nombre_producto }) { item ->
@@ -216,7 +216,7 @@ class CarritoScreen(val usuario: Usuario? = null) : Screen {
 
                 Card(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth().padding(horizontal = 250.dp)
                         .padding(vertical = 20.dp),
                     elevation = 8.dp,
                     shape = RoundedCornerShape(12.dp),
