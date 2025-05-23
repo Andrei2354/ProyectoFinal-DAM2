@@ -79,7 +79,11 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
-                            onClick = { navigator?.pop() },
+                            onClick = {
+                                usuario?.let { user ->
+                                    navigator?.push(ShopScreen(user))
+                                }
+                            },
                             modifier = Modifier
                                 .size(40.dp)
                                 .border(
@@ -465,7 +469,7 @@ fun ProductoRelacionadoCard(
     Card(
         modifier = Modifier
             .width(160.dp)
-            .height(220.dp)
+            .height(260.dp)
             .clickable { onProductClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
@@ -565,35 +569,5 @@ fun ProductoRelacionadoCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun InfoRow(
-    label: String,
-    value: String,
-    colors: Pair<Color, Color>
-) {
-    val (labelColor, valueColor) = colors
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            color = labelColor,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Text(
-            text = value,
-            color = valueColor,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
-        )
     }
 }
