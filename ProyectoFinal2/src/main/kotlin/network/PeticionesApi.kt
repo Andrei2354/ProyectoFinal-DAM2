@@ -292,3 +292,124 @@ fun apiEliminarDelCarrito(
         }
     }
 }
+fun apiGetTodosUsuarios(onComplete: (List<UsuarioCompleto>) -> Unit) {
+    val url = "http://127.0.0.1:5000/admin/usuarios"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.get(url)
+            if (response.status.isSuccess()) {
+                val usuarios = response.body<List<UsuarioCompleto>>()
+                CoroutineScope(Dispatchers.Main).launch {
+                    onComplete(usuarios)
+                }
+            } else {
+                CoroutineScope(Dispatchers.Main).launch {
+                    onComplete(emptyList())
+                }
+            }
+        } catch (e: Exception) {
+            println("Error al obtener usuarios: ${e.message}")
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(emptyList())
+            }
+        }
+    }
+}
+
+fun apiEditarUsuario(
+    usuario: UsuarioCompleto,
+    onComplete: (Boolean, String) -> Unit
+) {
+    val url = "http://127.0.0.1:5000/admin/editar_usuario"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.put(url) {
+                contentType(ContentType.Application.Json)
+                setBody(usuario)
+            }
+
+            val success = response.status.isSuccess()
+            val message = if (success) "Usuario actualizado correctamente" else "Error al actualizar usuario"
+
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(success, message)
+            }
+        } catch (e: Exception) {
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(false, "Error de conexión")
+            }
+        }
+    }
+}
+
+fun apiEliminarUsuario(
+    usuarioId: Int,
+    onComplete: (Boolean, String) -> Unit
+) {
+    val url = "http://127.0.0.1:5000/admin/eliminar_usuario/$usuarioId"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.delete(url)
+
+            val success = response.status.isSuccess()
+            val message = if (success) "Usuario eliminado correctamente" else "Error al eliminar usuario"
+
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(success, message)
+            }
+        } catch (e: Exception) {
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(false, "Error de conexión")
+            }
+        }
+    }
+}
+
+fun apiEditarProducto(
+    producto: ProductoCompleto,
+    onComplete: (Boolean, String) -> Unit
+) {
+    val url = "http://127.0.0.1:5000/admin/editar_producto"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.put(url) {
+                contentType(ContentType.Application.Json)
+                setBody(producto)
+            }
+
+            val success = response.status.isSuccess()
+            val message = if (success) "Producto actualizado correctamente" else "Error al actualizar producto"
+
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(success, message)
+            }
+        } catch (e: Exception) {
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(false, "Error de conexión")
+            }
+        }
+    }
+}
+
+fun apiEliminarProducto(
+    productoId: Int,
+    onComplete: (Boolean, String) -> Unit
+) {
+    val url = "http://127.0.0.1:5000/admin/eliminar_producto/$productoId"
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = httpClient.delete(url)
+
+            val success = response.status.isSuccess()
+            val message = if (success) "Producto eliminado correctamente" else "Error al eliminar producto"
+
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(success, message)
+            }
+        } catch (e: Exception) {
+            CoroutineScope(Dispatchers.Main).launch {
+                onComplete(false, "Error de conexión")
+            }
+        }
+    }
+}
