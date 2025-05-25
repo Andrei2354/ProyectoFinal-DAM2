@@ -38,7 +38,6 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
     override fun Content() {
         val navigator = LocalNavigator.current
         val blanco = Color(0xFFefeff2)
-        val lila = Color(0xFFa69eb0)
         val pastel = Color(0xFFf2e2cd)
         val gris = Color(0xFFdadae3)
         val negro = Color(0xFF011f4b)
@@ -166,7 +165,7 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                 item(key = "producto_principal_${productoActual.id_producto}") {
                     Card(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(0.7f)
                             .padding(horizontal = 20.dp)
                             .padding(bottom = 20.dp),
                         shape = RoundedCornerShape(16.dp),
@@ -178,18 +177,18 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(20.dp),
+                                .padding(14.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(bottom = 20.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    .padding(bottom = 14.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Card(
                                     modifier = Modifier
-                                        .size(250.dp),
+                                        .size(175.dp),
                                     shape = RoundedCornerShape(12.dp),
                                     colors = CardDefaults.cardColors(
                                         containerColor = gris
@@ -247,74 +246,68 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight(),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
                                     Text(
                                         text = productoActual.nombre,
                                         color = negro,
-                                        fontSize = 20.sp,
+                                        fontSize = 18.sp,
                                         fontWeight = FontWeight.Bold,
                                         textAlign = TextAlign.Start
                                     )
 
-                                    Card(
-                                        shape = RoundedCornerShape(8.dp),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = pastel
-                                        )
-                                    ) {
-                                        Text(
+                                    Text(
                                             text = "${productoActual.precio}€",
                                             color = negro,
-                                            fontSize = 24.sp,
+                                            fontSize = 22.sp,
                                             fontWeight = FontWeight.ExtraBold,
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                                        )
-                                    }
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)  // Reducido padding
+                                    )
+
 
                                     Column(
-                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                        verticalArrangement = Arrangement.spacedBy(3.dp)  // Reducido de 4.dp a 3.dp
                                     ) {
                                         if (!cargandoMarcasYCategorias) {
                                             Text(
                                                 text = "Categoría: ${obtenerNombreCategoria(productoActual.id_categoria)}",
                                                 color = negro,
-                                                fontSize = 16.sp,
-                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                                fontSize = 14.sp,  // Reducido de 16.sp a 14.sp
+                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)  // Reducido padding
                                             )
                                             Text(
                                                 text = "Marca: ${obtenerNombreMarca(productoActual.id_marca)}",
                                                 color = negro,
-                                                fontSize = 16.sp,
-                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                                fontSize = 14.sp,  // Reducido de 16.sp a 14.sp
+                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)  // Reducido padding
                                             )
                                         } else {
                                             Row(
-                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),  // Reducido padding
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Text(
                                                     text = "Categoría: ",
                                                     color = negro,
-                                                    fontSize = 16.sp
+                                                    fontSize = 14.sp  // Reducido de 16.sp a 14.sp
                                                 )
                                                 CircularProgressIndicator(
-                                                    modifier = Modifier.size(16.dp),
+                                                    modifier = Modifier.size(14.dp),  // Reducido de 16.dp a 14.dp
                                                     color = purpura,
                                                     strokeWidth = 2.dp
                                                 )
                                             }
                                             Row(
-                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),  // Reducido padding
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Text(
                                                     text = "Marca: ",
                                                     color = negro,
-                                                    fontSize = 16.sp
+                                                    fontSize = 14.sp  // Reducido de 16.sp a 14.sp
                                                 )
                                                 CircularProgressIndicator(
-                                                    modifier = Modifier.size(16.dp),
+                                                    modifier = Modifier.size(14.dp),  // Reducido de 16.dp a 14.dp
                                                     color = purpura,
                                                     strokeWidth = 2.dp
                                                 )
@@ -324,8 +317,8 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                         Text(
                                             text = "Descripción: ${productoActual.descripcion}",
                                             color = negro,
-                                            fontSize = 16.sp,
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                            fontSize = 14.sp,  // Reducido de 16.sp a 14.sp
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)  // Reducido padding
                                         )
 
                                         Button(
@@ -363,22 +356,22 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                             },
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(50.dp),
+                                                .height(45.dp),  // Reducido de 50.dp a 45.dp
                                             colors = ButtonDefaults.buttonColors(
-                                                containerColor = purpura
+                                                containerColor = negro  // Cambiado de purpura a negro
                                             ),
                                             shape = RoundedCornerShape(12.dp)
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.ShoppingCart,
                                                 contentDescription = "Añadir al carrito",
-                                                modifier = Modifier.size(20.dp),
+                                                modifier = Modifier.size(18.dp),  // Reducido de 20.dp a 18.dp
                                                 tint = blanco
                                             )
-                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Spacer(modifier = Modifier.width(6.dp))  // Reducido de 8.dp a 6.dp
                                             Text(
                                                 text = "Añadir al Carrito",
-                                                fontSize = 16.sp,
+                                                fontSize = 14.sp,  // Reducido de 16.sp a 14.sp
                                                 fontWeight = FontWeight.Bold,
                                                 color = blanco
                                             )
@@ -444,7 +437,7 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                                 }
                                             }
                                         },
-                                        colors = Triple(blanco, negro, purpura)
+                                        colors = Triple(blanco, negro, negro)
                                     )
                                 }
                             }
@@ -506,7 +499,7 @@ class ProductoDetalleScreen(val producto: Producto, val usuario: Usuario? = null
                                                 }
                                             }
                                         },
-                                        colors = Triple(blanco, negro, purpura)
+                                        colors = Triple(blanco, negro, negro)
                                     )
                                 }
                             }
