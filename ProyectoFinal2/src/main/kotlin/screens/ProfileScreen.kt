@@ -183,7 +183,7 @@ class ProfileScreen(val user: modelo.Usuario) : Screen {
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = colors.lila,
+                        backgroundColor = colors.negro,
                         contentColor = colors.blanco
                     )
                 ) {
