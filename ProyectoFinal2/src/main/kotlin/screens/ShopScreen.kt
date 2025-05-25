@@ -30,22 +30,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Snackbar
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -69,9 +55,7 @@ class ShopScreen(val usuario: Usuario): Screen {
     override fun Content() {
         val navigator = LocalNavigator.current
         val blanco = Color(0xFFefeff2)
-        val lila = Color(0xFFa69eb0)
-        val pastel = Color(0xFFf2e2cd)
-        val gris = Color(0xFFdadae3)
+        val pastel = Color(0xFF011f4b)
         val negro = Color(0xFF011f4b)
         val purpura = Color(0xFFa69eb0)
 
@@ -128,7 +112,7 @@ class ShopScreen(val usuario: Usuario): Screen {
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(20.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         IconButton(
                             onClick = { navigator?.push(ProfileScreen(usuario)) },
@@ -147,6 +131,7 @@ class ShopScreen(val usuario: Usuario): Screen {
                                 modifier = Modifier.size(24.dp)
                             )
                         }
+
                         Box(contentAlignment = Alignment.Center) {
                             IconButton(
                                 onClick = { navigator?.push(CarritoScreen(usuario)) },
@@ -162,6 +147,52 @@ class ShopScreen(val usuario: Usuario): Screen {
                                     imageVector = Icons.Default.ShoppingCart,
                                     contentDescription = "Carrito",
                                     tint = negro,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+
+                        if (usuario.isAdmin()) {
+                            IconButton(
+                                onClick = { navigator?.push(AdminProductosScreen(usuario)) },
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .border(
+                                        width = 1.dp,
+                                        color = Color.Red.copy(alpha = 0.7f),
+                                        shape = CircleShape
+                                    )
+                                    .background(
+                                        color = Color.Red.copy(alpha = 0.1f),
+                                        shape = CircleShape
+                                    )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Inventory,
+                                    contentDescription = "Gestionar Productos",
+                                    tint = Color.Red,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+
+                            IconButton(
+                                onClick = { navigator?.push(AdminUsuariosScreen(usuario)) },
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .border(
+                                        width = 1.dp,
+                                        color = Color.Red.copy(alpha = 0.7f),
+                                        shape = CircleShape
+                                    )
+                                    .background(
+                                        color = Color.Red.copy(alpha = 0.1f),
+                                        shape = CircleShape
+                                    )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.People,
+                                    contentDescription = "Gestionar Usuarios",
+                                    tint = Color.Red,
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
@@ -341,7 +372,6 @@ class ShopScreen(val usuario: Usuario): Screen {
         }
     }
 }
-
 @Composable
 fun CategoriaPill(
     nombre: String,
