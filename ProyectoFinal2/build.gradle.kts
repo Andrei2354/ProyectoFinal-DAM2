@@ -21,20 +21,26 @@ dependencies {
     implementation(compose.material3)
     implementation(compose.materialIconsExtended)
     implementation(compose.foundation)
+    implementation(compose.ui)
+    implementation(compose.runtime)
 
-    // Ktor
+    // Ktor para networking
     implementation("io.ktor:ktor-client-core:3.0.3")
     implementation("io.ktor:ktor-client-content-negotiation:3.0.3")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.3")
     implementation("io.ktor:ktor-client-cio:3.0.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
 
-    // Voyager
-    implementation("cafe.adriel.voyager:voyager-navigator:${property("voyager.version")}")
-    implementation("cafe.adriel.voyager:voyager-transitions:${property("voyager.version")}")
-    implementation("cafe.adriel.voyager:voyager-koin:${property("voyager.version")}")
-    implementation("androidx.annotation:annotation-jvm:1.9.1")
+    // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+
+    // Voyager navigation
+    implementation("cafe.adriel.voyager:voyager-navigator:1.1.0-beta03")
+    implementation("cafe.adriel.voyager:voyager-transitions:1.1.0-beta03")
+
+    // Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
 }
 
 java {
