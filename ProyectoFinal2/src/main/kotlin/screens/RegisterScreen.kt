@@ -28,7 +28,6 @@ class RegisterScreen : Screen {
         var confirmPassword by remember { mutableStateOf("") }
         var isLoading by remember { mutableStateOf(false) }
         var errorMessage by remember { mutableStateOf("") }
-        val scope = rememberCoroutineScope()
 
         val blanco = Color(0xFFefeff2)
         val pupura = Color(0xFFa69eb0)
