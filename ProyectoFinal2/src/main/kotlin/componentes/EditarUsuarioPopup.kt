@@ -30,7 +30,7 @@ fun EditarUsuarioPopup(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            colors = CardDefaults.cardColors(containerColor = blanco.copy(alpha = 0.6f))
+            colors = CardDefaults.cardColors(containerColor = blanco)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),

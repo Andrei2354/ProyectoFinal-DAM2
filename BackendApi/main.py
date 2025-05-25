@@ -567,6 +567,7 @@ def editar_producto():
             precio, imagen_url, id_producto
         ))
 
+
         if resultado is not None:
             return jsonify({"msg": "Producto actualizado correctamente"}), 200
         else:
