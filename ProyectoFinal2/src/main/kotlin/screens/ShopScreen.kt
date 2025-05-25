@@ -83,7 +83,6 @@ class ShopScreen(val usuario: Usuario): Screen {
         var busqueda by remember { mutableStateOf("") }
         var cargando by remember { mutableStateOf(true) }
 
-        // Para mostrar mensajes de carrito
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
 
@@ -299,7 +298,6 @@ class ShopScreen(val usuario: Usuario): Screen {
                                             ) { success, mensaje ->
                                                 scope.launch {
                                                     if (success) {
-                                                        // AGREGAR ESTA LÍNEA CLAVE:
                                                         CarritoRefresh.notifyUpdate()
 
                                                         snackbarHostState.showSnackbar(
@@ -316,7 +314,7 @@ class ShopScreen(val usuario: Usuario): Screen {
                                             }
                                         },
                                         onProductClick = {
-                                            navigator?.push(ProductoDetalleScreen(producto))
+                                            navigator?.push(ProductoDetalleScreen(producto, usuario))
                                         }
                                     )
                                 }
@@ -330,7 +328,6 @@ class ShopScreen(val usuario: Usuario): Screen {
                 }
             }
 
-            // SnackbarHost para mostrar mensajes
             SnackbarHost(
                 hostState = snackbarHostState,
                 modifier = Modifier.align(Alignment.BottomCenter)

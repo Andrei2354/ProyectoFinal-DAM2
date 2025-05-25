@@ -33,10 +33,3 @@ data class ActualizarCantidadRequest(
 data class EliminarItemRequest(
     val id_carrito: Int
 )
-
-@Serializable
-data class CarritoResponse(
-    val success: Boolean,
-    val message: String,
-    val carrito: List<ItemCarrito> = emptyList()
-)
